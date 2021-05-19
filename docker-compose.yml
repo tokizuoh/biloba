@@ -9,3 +9,4 @@ services:
             - 8080:8080
         volumes:
             - .:/go/src
+        env_file: .env
