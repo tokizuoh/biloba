@@ -9,18 +9,22 @@ import (
 )
 
 type CostOutput struct {
-	Service    string
-	Amount     string
-	Unit       string
+	Costs      []Cost
 	TimePeriod TimePeriod
 }
 
-type TimePeriod struct {
-	end   string
-	start string
+type Cost struct {
+	Service string
+	Amount  string
+	Unit    string
 }
 
-func FetchTotalCost() ([]CostOutput, error) {
+type TimePeriod struct {
+	End   string
+	Start string
+}
+
+func FetchTotalCost() (CostOutput, error) {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	now := time.Now().UTC().In(jst)
 	dayBefore := now.AddDate(0, 0, -1)
@@ -59,23 +63,23 @@ func FetchTotalCost() ([]CostOutput, error) {
 		Metrics: aws.StringSlice(metrics),
 	})
 	if err != nil {
-		return nil, err
+		return CostOutput{}, err
 	}
 
-	var costOutputs = []CostOutput{}
+	var costOutputs = CostOutput{}
 	for _, rbt := range result.ResultsByTime {
 		tp := TimePeriod{
-			end:   *rbt.TimePeriod.End,
-			start: *rbt.TimePeriod.Start,
+			End:   *rbt.TimePeriod.End,
+			Start: *rbt.TimePeriod.Start,
 		}
+		costOutputs.TimePeriod = tp
 		for _, g := range rbt.Groups {
-			co := CostOutput{
-				Service:    *g.Keys[0],
-				Amount:     *g.Metrics["BlendedCost"].Amount,
-				Unit:       *g.Metrics["BlendedCost"].Unit,
-				TimePeriod: tp,
+			co := Cost{
+				Service: *g.Keys[0],
+				Amount:  *g.Metrics["BlendedCost"].Amount,
+				Unit:    *g.Metrics["BlendedCost"].Unit,
 			}
-			costOutputs = append(costOutputs, co)
+			costOutputs.Costs = append(costOutputs.Costs, co)
 		}
 	}
 
