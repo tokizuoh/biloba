@@ -34,3 +34,6 @@ SLACK_BOT_TOKEN={slack_bot_token}
 ```bash
 > docker-compose exec app go run main.go
 ```
+  
+![](images/slack.png)  
+  
