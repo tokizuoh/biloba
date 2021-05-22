@@ -8,9 +8,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 )
 
-func Cost() {
-	start := "2020-06-01"
-	end := "2021-05-01"
+type CostOutput struct {
+	Service string
+	Amount  string
+	Unit    string
+}
+
+func fetchTotalCost() []CostOutput {
+	start := "2021-05-20"
+	end := "2021-05-21"
 	granularity := "MONTHLY"
 	metrics := []string{
 		"BlendedCost",
@@ -42,5 +48,17 @@ func Cost() {
 		log.Fatalf("Unable to generate report, %v", err)
 	}
 
-	log.Println("Cost Report:", result.ResultsByTime)
+	var costOutputs = []CostOutput{}
+	for _, rbt := range result.ResultsByTime {
+		for _, g := range rbt.Groups {
+			co := CostOutput{
+				Service: *g.Keys[0],
+				Amount:  *g.Metrics["BlendedCost"].Amount,
+				Unit:    *g.Metrics["BlendedCost"].Unit,
+			}
+			costOutputs = append(costOutputs, co)
+		}
+	}
+
+	return costOutputs
 }
