@@ -1,7 +1,7 @@
 package awsce
 
 import (
-	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -9,15 +9,29 @@ import (
 )
 
 type CostOutput struct {
-	Service string
-	Amount  string
-	Unit    string
+	Service    string
+	Amount     string
+	Unit       string
+	TimePeriod TimePeriod
 }
 
-func fetchTotalCost() []CostOutput {
-	start := "2021-05-20"
-	end := "2021-05-21"
-	granularity := "MONTHLY"
+type TimePeriod struct {
+	end   string
+	start string
+}
+
+func FetchTotalCost() ([]CostOutput, error) {
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	now := time.Now().UTC().In(jst)
+	dayBefore := now.AddDate(0, 0, -1)
+	dayBeforeYesterday := now.AddDate(0, 0, -2)
+
+	dayBeforeStr := dayBefore.Format("2006-01-02")
+	dayBeforeYesterdayStr := dayBeforeYesterday.Format("2006-01-02")
+
+	start := dayBeforeYesterdayStr
+	end := dayBeforeStr
+	granularity := "DAILY"
 	metrics := []string{
 		"BlendedCost",
 	}
@@ -45,20 +59,25 @@ func fetchTotalCost() []CostOutput {
 		Metrics: aws.StringSlice(metrics),
 	})
 	if err != nil {
-		log.Fatalf("Unable to generate report, %v", err)
+		return nil, err
 	}
 
 	var costOutputs = []CostOutput{}
 	for _, rbt := range result.ResultsByTime {
+		tp := TimePeriod{
+			end:   *rbt.TimePeriod.End,
+			start: *rbt.TimePeriod.Start,
+		}
 		for _, g := range rbt.Groups {
 			co := CostOutput{
-				Service: *g.Keys[0],
-				Amount:  *g.Metrics["BlendedCost"].Amount,
-				Unit:    *g.Metrics["BlendedCost"].Unit,
+				Service:    *g.Keys[0],
+				Amount:     *g.Metrics["BlendedCost"].Amount,
+				Unit:       *g.Metrics["BlendedCost"].Unit,
+				TimePeriod: tp,
 			}
 			costOutputs = append(costOutputs, co)
 		}
 	}
 
-	return costOutputs
+	return costOutputs, nil
 }
