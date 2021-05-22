@@ -1,6 +1,6 @@
 # biloba
   
-![biloba](https://socialify.git.ci/tokizuoh/biloba/image?description=1&font=Source%20Code%20Pro&language=1&logo=https%3A%2F%2Fuser-images.githubusercontent.com%2F37968814%2F119221357-ebdb4080-bb29-11eb-9474-ed254d7627b8.png&owner=1&theme=Light)
+![biloba](https://socialify.git.ci/tokizuoh/biloba/image?description=1&language=1&logo=https%3A%2F%2Fuser-images.githubusercontent.com%2F37968814%2F119221357-ebdb4080-bb29-11eb-9474-ed254d7627b8.png&owner=1&theme=Light)
   
 ## Docker 
   
